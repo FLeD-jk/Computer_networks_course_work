@@ -43,14 +43,14 @@ class Channel:
                                             width=self.width, activewidth=self.active_width, dash=(8, 2))
 
             self.text = self.canvas.create_text(int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2 - 20),
-                                            font=("Time New Roman", 10), text=f"{self.weight//3}  ({self.weight})")
+                                            font=("Time New Roman", 10), text=f"{self.weight//3}  ({self.weight})", fill="#FF00FF")
         else:
             self.view = self.canvas.create_line(self.x1, self.y1, self.x2, self.y2,
                                             fill=self.current_color, activefill=self.active_color,
                                             width=self.width, activewidth=self.active_width)
 
             self.text = self.canvas.create_text(int((self.x1 + self.x2) / 2), int((self.y1 + self.y2) / 2 - 14),
-                                            font=("Time New Roman", 10), text=str(self.weight))
+                                            font=("Time New Roman", 10), text=str(self.weight), fill="#FF00FF")
 
     def select(self, event):
         if self.selected and not self.disabled:

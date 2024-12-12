@@ -3,17 +3,28 @@ import random as rnd
 from tkinter import *
 from tkinter.tix import Tk, HList, Scrollbar
 import tkinter.tix as tk
-from Dijkstra import *
+from routing_algorithm_catalogs import *
 from channel import Channel
 from graph import *
 from node import Node
-from package import Package
-from station import Station
+
+from workstation import Station
 from tkinter import Toplevel, Label, Radiobutton, IntVar, Button, Entry
+import openpyxl
+import os
+from openpyxl import load_workbook, Workbook
 
 global CURRENT_NODE_NUMBER
 global CHANNEL_WEIGHTS
 
+class Package:
+    def __init__(self, size, number, header=24):
+        self.number = number
+        self.size = size
+        self.header = header
+
+    def __repr__(self):
+        return f"Package(number={self.number} size={self.size} header={self.header})"
 
 class Main:
     def __init__(self):
@@ -24,60 +35,60 @@ class Main:
         self.root = Tk()
         self.root["bg"] = "#ffffff"
         self.root.title("Course Work Nesteruk Anastasia KV-11")
-        self.root.geometry("1280x1024")
+        self.root.geometry("1024x1024")
 
         # background
 
         self.left_panel = Frame(self.root, width=128, height=2000, bg="#e1dd72")
-        self.left_panel.pack(side="left", anchor="nw")
+        self.left_panel.pack(side="right", anchor="nw")
 
         self.canvas = Canvas(width=1280, height=1024, bg='#DCDCDC')
-        self.canvas.pack(side="left", anchor="nw")
+        self.canvas.pack(side="right", anchor="nw")
 
         # adding buttons
-        self.button_add_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Add Node", font=("Time New Roman", 9))
-        self.button_add_node.place(x=5, y=10)
+        self.button_add_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", text="Add Node", font=("Time New Roman", 9))
+        self.button_add_node.place(x=902, y=10)
         self.button_add_node.bind('<Button-1>', self.add_node_event)
 
-        self.button_add_node = Button(self.root, width=15, height=2, bg="#a8c66c",  relief="raised", fg="black", text="Add station", font=("Time New Roman", 9))
-        self.button_add_node.place(x=5, y=60)
+        self.button_add_node = Button(self.root, width=15, height=2, bg="#a8c66c",  relief="ridge", fg="black", text="Add workstation", font=("Time New Roman", 9))
+        self.button_add_node.place(x=902, y=60)
         self.button_add_node.bind('<Button-1>', self.add_station_event)
 
-        self.button_add_channel = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Add channel", font=("Time New Roman", 9))
-        self.button_add_channel.place(x=5, y=110)
+        self.button_add_channel = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", text="Add channel", font=("Time New Roman", 9))
+        self.button_add_channel.place(x=902, y=110)
         self.button_add_channel.bind('<Button-1>', self.add_channel)
 
-        self.button_delete_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Delete node", font=("Time New Roman", 9))
-        self.button_delete_node.place(x=5, y=160)
+        self.button_delete_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", text="Delete node", font=("Time New Roman", 9))
+        self.button_delete_node.place(x=902, y=160)
         self.button_delete_node.bind('<Button-1>', self.delete_node)
 
-        self.button_delete_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Delete station", font=("Time New Roman", 9))
-        self.button_delete_node.place(x=5, y=210)
+        self.button_delete_node = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", bd=2,  text="Delete workstation", font=("Time New Roman", 9))
+        self.button_delete_node.place(x=902, y=210)
         self.button_delete_node.bind('<Button-1>', self.delete_node)
 
-        self.button_delete_channel = Button(self.root, width=15, height=2, bg="#a8c66c",relief="raised", fg="black", text="Delete channel", font=("Time New Roman", 9))
-        self.button_delete_channel.place(x=5, y=260)
+        self.button_delete_channel = Button(self.root, width=15, height=2, bg="#a8c66c",relief="ridge", fg="black", bd=2, text="Delete channel", font=("Time New Roman", 9))
+        self.button_delete_channel.place(x=902, y=260)
         self.button_delete_channel.bind('<Button-1>', self.delete_channel)
 
-        self.delete_everything_button = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Delete everything", font=("Time New Roman", 9))
-        self.delete_everything_button.place(x=5, y=310)
+        self.delete_everything_button = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Delete everything", font=("Time New Roman", 9))
+        self.delete_everything_button.place(x=902, y=310)
         self.delete_everything_button.bind('<Button-1>', self.clear_everything)
 
-        self.button_send_message = Button(self.root, width=15, height=2, wraplength=100, bg="#a8c66c", relief="raised", fg="black", text="Send message", font=("Time New Roman", 9))
-        self.button_send_message.place(x=5, y=360)
+        self.button_send_message = Button(self.root, width=15, height=2, wraplength=100, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Send message", font=("Time New Roman", 9))
+        self.button_send_message.place(x=902, y=360)
         self.button_send_message.bind('<Button-1>', self.send_message)
 
-        self.save_to_file_button = Button(self.root, width=15, height=2, bg="#a8c66c", relief="raised", fg="black", text="Save", font=("Time New Roman", 9))
-        self.save_to_file_button.place(x=5, y=846)
+        self.save_to_file_button = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Save", font=("Time New Roman", 9))
+        self.save_to_file_button.place(x=902, y=846)
         self.save_to_file_button.bind('<Button-1>', self.save_to_file)
 
-        self.upload_from_file_button = Button(self.root, width=15, height=3, bg="#a8c66c", relief="raised", fg="black", text="Load half-duplex \nnetwork", font=("Time New Roman", 9))
-        self.upload_from_file_button.place(x=5, y=896)
+        self.upload_from_file_button = Button(self.root, width=15, height=3, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Load half-duplex \nnetwork", font=("Time New Roman", 9))
+        self.upload_from_file_button.place(x=902, y=896)
         self.upload_from_file_button.bind('<Button-1>', self.upload_from_file)
 
-        self.upload_from_file_button1 = Button(self.root, width=15, height=3, bg="#a8c66c",relief="raised", fg="black",
+        self.upload_from_file_button1 = Button(self.root, width=15, height=3, bg="#a8c66c",relief="ridge", fg="black", bd=2,
                                                text="Load duplex \nnetwork", font=("Time New Roman", 9))
-        self.upload_from_file_button1.place(x=5, y=960)
+        self.upload_from_file_button1.place(x=902, y=960)
         self.upload_from_file_button1.bind('<Button-1>', self.upload_from_file1)
 
         self.title = ''
@@ -214,7 +225,7 @@ class Main:
             self.channel_window.title("Channel Settings")
             self.channel_window["bg"] = "#e1dd72"
 
-            # Вибір типу каналу (супутниковий або звичайний)
+            # Select the channel type (satellite or regular)
             Label(self.channel_window, text="Chose channel mode:", font=("Time New Roman", 14), bg="#e1dd72").pack(pady=10)
             self.is_satellite = IntVar(value=0)
             Radiobutton(self.channel_window, text="Simple channel", font=("Time New Roman", 9),bg="#e1dd72", variable=self.is_satellite, value=0).pack(anchor=W,
@@ -222,21 +233,21 @@ class Main:
             Radiobutton(self.channel_window, text="Satellite channel", font=("Time New Roman", 9), bg="#e1dd72", variable=self.is_satellite, value=1).pack(
                 anchor=W, padx=20)
 
-            # Вибір типу каналу (дуплексний або напівдуплексний)
+            # Selecting the channel type (duplex or half-duplex)
             Label(self.channel_window, text="Chose channel type:",  font=("Time New Roman", 14),bg="#e1dd72").pack(pady=10)
             self.channel_type = IntVar(value=0)
             Radiobutton(self.channel_window, text="Duplex", font=("Time New Roman", 9),bg="#e1dd72", variable=self.channel_type, value=0).pack(anchor=W, padx=20)
             Radiobutton(self.channel_window, text="Half-Duplex", font=("Time New Roman", 9), bg="#e1dd72", variable=self.channel_type, value=1).pack(anchor=W,
                                                                                                            padx=20)
 
-            # Вибір способу задання ваги
+            # Selecting a weight setting method
             Label(self.channel_window, text="Chose weight setting:",  font=("Time New Roman", 14), bg="#e1dd72").pack(pady=10)
             self.weight_type = IntVar(value=0)
             Radiobutton(self.channel_window, text="Random",font=("Time New Roman", 9),bg="#e1dd72", variable=self.weight_type, value=0).pack(anchor=W, padx=20)
             Radiobutton(self.channel_window, text="Manually", font=("Time New Roman", 9), bg="#e1dd72", variable=self.weight_type, value=1).pack(anchor=W,
                                                                                                        padx=20)
 
-            # Кнопка підтвердження
+            # Confirmation button
             Button(self.channel_window, text="Confirm Settings",font=("Time New Roman", 9), bg="#a8c66c", command=self.confirm_channel).pack(pady=20)
 
     def confirm_channel(self):
@@ -244,27 +255,27 @@ class Main:
         is_satellite_mode = bool(self.is_satellite.get())
         weight_mode = self.weight_type.get()
 
-        if weight_mode == 0:  # Випадкова вага
+        if weight_mode == 0:
             weight = rnd.choice(CHANNEL_WEIGHTS)
             self.create_new_channel(channel_mode, weight, is_satellite_mode)
             self.channel_window.destroy()
-        else:  # Введення ваги вручну
+        else:
             self.prompt_manual_weight(channel_mode, is_satellite_mode)
 
     def prompt_manual_weight(self, channel_mode, is_satellite_mode):
-        # Видалення старого поля вводу (якщо є)
+        # Delete the old input field (if any)
         for widget in self.channel_window.winfo_children():
             if isinstance(widget, Entry):
                 widget.destroy()
 
-        # Створення нового поля для введення ваги
+        # Create a new field for entering weight
         manual_weight_label = Label(self.channel_window, text="Enter weight:",  font=("Time New Roman", 14), bg="#e1dd72")
         manual_weight_label.pack(pady=5)
 
         self.manual_weight_entry = Entry(self.channel_window, bg='#DCDCDC')
         self.manual_weight_entry.pack(pady=5)
 
-        # Кнопка для підтвердження вручну введеної ваги
+        # Button to confirm the manually entered weight
         self.confirm_weight_button = Button(self.channel_window, text="Confirm weight",  font=("Time New Roman", 9),  bg="#a8c66c",
                                             command=lambda: self.confirm_manual_weight(channel_mode, is_satellite_mode))
         self.confirm_weight_button.pack(pady=10)
@@ -273,7 +284,7 @@ class Main:
         try:
             weight = int(self.manual_weight_entry.get())
             self.create_new_channel(channel_mode, weight, is_satellite_mode)
-            self.channel_window.destroy()  # Закриваємо вікно після підтвердження
+            self.channel_window.destroy()
         except ValueError:
             error_label = Label(self.channel_window, text="Invalid weight. Enter an integer.", fg="red",  bg="#e1dd72",
                                 font=("Time New Roman", 14))
@@ -338,25 +349,25 @@ class Main:
         self.nodes_for_message = [node for node in self.node_list if node.selected]
 
         if len(self.nodes_for_message) == 1:
-            # Створення нового вікна для введення параметрів повідомлення
+            # Create a new window for entering message parameters
             self.message_window = Toplevel(self.root)
             self.message_window.geometry("300x400")
             self.message_window.title("Send Message")
             self.message_window["bg"] = "#e1dd72"
 
-            # Введення розміру повідомлення
+            # Enter the size of the message
             self.size_label = Label(self.message_window, text="Message size (bytes):", font=("Time New Roman", 14),  bg="#e1dd72")
             self.size_label.pack(pady=10)
             self.size_enter = Entry(self.message_window, width=10, bd=3, bg='#DCDCDC')
             self.size_enter.pack(pady=10)
 
-            # Введення розміру пакету
+            # Entering the packet size
             self.package_size_label = Label(self.message_window, text="Info package size (bytes):", font=("Time New Roman", 14), bg="#e1dd72")
             self.package_size_label.pack(pady=10)
             self.package_size_enter = Entry(self.message_window, width=10, bd=3, bg='#DCDCDC')
             self.package_size_enter.pack(pady=10)
 
-            # Вибір типу каналу для передачі
+            # Select the type of channel for transmission
             self.send_type = IntVar()
             self.send_type.set(0)
             self.datagram = Radiobutton(self.message_window, text="Datagram",font=("Time New Roman", 9), bg="#e1dd72", variable=self.send_type, value=0)
@@ -364,7 +375,7 @@ class Main:
             self.datagram.pack(pady=5)
             self.virtual.pack(pady=5)
 
-            # Кнопка підтвердження
+            # Confirmation button
             self.confirm_button = Button(self.message_window,  text="OK",font=("Time New Roman", 9),  bg="#a8c66c",
                                          command=lambda event=None: self.confirm_send(event))
             self.confirm_button.pack(pady=20)
@@ -513,7 +524,7 @@ class Main:
                     
                     self.route = session_catalog_routing(self.graph.edges, self.nodes_for_message[0].name, finish_node.name)
                     counter += 1
-                    
+
                     self.route_channels = self.transform_route(self.route) 
 
                     # generation error in channel of route
@@ -653,13 +664,13 @@ class Main:
                         index = '%s' % counter
                         tab.add(index, data="--<%s>--" % counter)
 
-                        # Переведення часу у секунди
-                        time_to_node = round(self.time / 1000, 2)  # ділимо на 1000, щоб отримати секунди
+
+                        time_to_node = round(self.time / 1000, 2)
                         self.total_time_to_all_nodes += time_to_node
 
                         tab.item_create(index, 0, text=(finish_node.name))
                         if self.route != []:
-                            tab.item_create(index, 1, text=(f"{time_to_node} sec."))  # Відображення у секундах
+                            tab.item_create(index, 1, text=(f"{time_to_node} sec."))
                             tab.item_create(index, 2, text=marsh)
                         else:
                             tab.item_create(index, 1, text=("Cannot find way."))
@@ -703,7 +714,76 @@ class Main:
                         
                 tab.place(x=370, y=0)
                 print(tab_marsh)
-                
+
+
+                results = []
+                transmission_mode = ''
+                if self.send_type.get() == 2:
+                    transmission_mode = "Virtual channel"
+                if self.send_type.get() == 0:
+                    transmission_mode = "Datagram"
+
+                results.append({
+                    "transmission_mode": transmission_mode,
+                    "message_size": self.message_size,
+                    "info_packets_size": self.package_size,
+                    "info_packets": self.quantity_info_package,
+                    "service_packets": self.service_package_count,
+                    "info_traffic": self.all_trafic - self.service_size_info,
+                    "service_traffic": self.service_size_info,
+                    "general_traffic": self.all_trafic,
+                    "time": self.total_time_to_all_nodes
+                })
+
+                self.save_results_to_xlsx("network_simulation_results.xlsx", results)
+
+    def save_results_to_xlsx(self, file_name, results):
+        """
+        Save results to an XLSX file, appending new results to the end of the file.
+
+        Parameters:
+        - file_name: str, name of the output XLSX file.
+        - results: list of dicts, where each dict contains results for one message.
+        """
+        if os.path.exists(file_name):  # Check if file exists
+            wb = load_workbook(file_name)  # Load existing workbook
+            ws = wb.active
+        else:
+            wb = Workbook()  # Create a new workbook if file does not exist
+            ws = wb.active
+            ws.title = "Results"
+
+            # Write the header only if the file is new
+            headers = [
+                "Тип",
+                "Розмір повідомлення",
+                "Розмір інформаційного пакету",
+                "Кількість інформаційних пакетів",
+                "Кількість службових пакетів",
+                "Розмір інформаційного пакету,байт",
+                "Розмір службового трафіку (байт)",
+                "Загальний трафік",
+                "Час"
+            ]
+            ws.append(headers)
+
+        # Write the results to the next available row
+        for result in results:
+            ws.append([
+                result.get("transmission_mode"),
+                result.get("message_size"),
+                result.get("info_packets_size"),
+                result.get("info_packets"),
+                result.get("service_packets"),
+                result.get("info_traffic"),
+                result.get("service_traffic"),
+                result.get("general_traffic"),
+                result.get("time")
+            ])
+
+        # Save the workbook with the new results
+        wb.save(file_name)
+
 
 
 if __name__ == '__main__':

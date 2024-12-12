@@ -1,11 +1,9 @@
 from collections import defaultdict
-from heapq import heappop, heappush  # Додано імпорт heapq
+from heapq import heappop, heappush
 
 
 def session_catalog_routing(edges, f, t):
-    """
-    Реалізація маршрутизації на основі каталогів для сеансів.
-    """
+
     g = defaultdict(list)
     for l, r, c in edges:
         g[l].append((c, r))
@@ -13,7 +11,7 @@ def session_catalog_routing(edges, f, t):
     session_catalog = {}
 
     if (f, t) in session_catalog:
-        print("Каталог:", session_catalog)  # Додано для перегляду каталогу
+        print("Catalog:", session_catalog)
         return session_catalog[(f, t)]
 
     q, seen = [(0, f, ())], set()
@@ -25,21 +23,19 @@ def session_catalog_routing(edges, f, t):
             if v1 == t:
                 norm_path = reconstruct_path(path, [])
                 session_catalog[(f, t)] = norm_path
-                print("Каталог після оновлення:", session_catalog)  # Каталог після додавання маршруту
+                print("Catalog after update:", session_catalog)
                 return norm_path
 
             for c, v2 in g.get(v1, ()):
                 if v2 not in seen:
                     heappush(q, (cost + c, v2, path))
 
-    print("Каталог після завершення:", session_catalog)  # Якщо маршрут не знайдено
+    print("Catalog after finish:", session_catalog)
     return []
 
 
 def reconstruct_path(path, norm_path):
-    """
-    Відновлення маршруту з вкладеної структури.
-    """
+
     if path[1] != ():
         norm_path.append(path[0])
         reconstruct_path(path[1], norm_path)
@@ -49,14 +45,7 @@ def reconstruct_path(path, norm_path):
     return norm_path
 
 
-# Приклад використання
-edges = [
-    ("A", "B", 1),
-    ("B", "C", 2),
-    ("A", "C", 2),
-    ("C", "D", 1)
-]
 
-start = "A"
-end = "D"
-print(session_catalog_routing(edges, start, end))
+
+
+
