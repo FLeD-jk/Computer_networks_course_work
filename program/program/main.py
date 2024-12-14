@@ -35,7 +35,7 @@ class Main:
         self.root = Tk()
         self.root["bg"] = "#ffffff"
         self.root.title("Course Work Nesteruk Anastasia KV-11")
-        self.root.geometry("1024x1024")
+        self.root.geometry("1024x520")
 
         # background
 
@@ -77,7 +77,7 @@ class Main:
         self.button_send_message = Button(self.root, width=15, height=2, wraplength=100, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Send message", font=("Time New Roman", 9))
         self.button_send_message.place(x=902, y=360)
         self.button_send_message.bind('<Button-1>', self.send_message)
-
+        '''
         self.save_to_file_button = Button(self.root, width=15, height=2, bg="#a8c66c", relief="ridge", fg="black", bd=2, text="Save", font=("Time New Roman", 9))
         self.save_to_file_button.place(x=902, y=846)
         self.save_to_file_button.bind('<Button-1>', self.save_to_file)
@@ -90,7 +90,7 @@ class Main:
                                                text="Load duplex \nnetwork", font=("Time New Roman", 9))
         self.upload_from_file_button1.place(x=902, y=960)
         self.upload_from_file_button1.bind('<Button-1>', self.upload_from_file1)
-
+        '''
         self.title = ''
         self.root.mainloop()
 
